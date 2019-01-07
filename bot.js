@@ -38,7 +38,7 @@ var errcheck = 0;
 var output = "";
 var lastpi = null;
 var comp = 0;
-
+var cnums = 0;
 var Twitter = require('twitter');
 
 //Twitter Login
@@ -75,10 +75,11 @@ con.query("SELECT amount from randomvars where nameof = 'sinema'", function (err
 });	
 
 //Used for storing election results from AZ, no longer used
-con.query("SELECT amount from randomvars where nameof = 'mcsally'", function (err, result) {
+con.query("SELECT amount from randomvars where nameof = 'mcsally' OR nameof = 'contractnums'", function (err, result) {
 		if (err) throw err;
-		mcsally = result[0].amount;
-		console.log(result);
+		cnums = result[0].amount;
+		mcsally = result[1].amount;
+		console.log(cnums + "THIS IS THE IMPORTANT ONE");
 });	
 /*
 con.query("SELECT amount from randomvars where nameof = 'urlnum'", function (err, result) {
@@ -432,7 +433,62 @@ function reqListener1 () {
 //Used for monitoring Predictit. Currently being used. Runs every minute (the frequency PI updates their API)
 setInterval(function(){ 
 	getPIdata();
+	checkdnom();
 },60005);
+
+function checkdnom() {
+	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+	var oReq = new XMLHttpRequest();
+	oReq.addEventListener("load", contractcounter);
+	oReq.open("GET", "https://www.predictit.org/api/marketdata/markets/3633");
+	oReq.send();
+}
+
+function contractcounter() {
+	var mydata = JSON.parse(this.responseText);
+	i = 0;
+	a = 0;
+	for (increments in mydata.contracts)
+	{
+		if (increments.id > a)
+		{
+			a = increments.id;
+			z = increments.name
+		}
+		i++;
+	}
+	if (i > cnums)
+	{
+		if ( 0 == i - cnums)
+		{
+			z = "Alert! New person added added to dem nom market: " + z 
+			bot.users.get(auth.owner).send(z);
+			client.post('statuses/update', {status: z},  function(error, tweet, response) {
+			if(!error){
+			console.log(tweet);  // Tweet body.
+			console.log(response);  // Raw response object.
+			}
+			});
+		}
+		else
+		{
+			z = "Alert! " + (i - cnums) + " new people added to dem nom market. Newest being: " + z;
+			bot.users.get(auth.owner).send(z);
+			client.post('statuses/update', {status: z},  function(error, tweet, response) {
+			if(!error){
+			console.log(tweet);  // Tweet body.
+			console.log(response);  // Raw response object.
+			}
+			});
+
+		}
+	}
+	else
+	{
+		z = "Alert! No new person added added to dem nom market. num of people: " + i;
+		console.log(z);
+	}
+}
 
 //This is used to retrieve contract specific info. contract number is passed to it, and its pulled up, site scanned. 
 function getpiVolatility (contractnumber) {
