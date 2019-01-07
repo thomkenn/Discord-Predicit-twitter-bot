@@ -480,8 +480,9 @@ function contractcounter() {
 			console.log(response);  // Raw response object.
 			}
 			});
-
 		}
+		con.query("update randomvars SET amount = " + i + " where nameof = 'contractnums'");
+		cnums = i;
 	}
 	else
 	{
