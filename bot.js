@@ -64,14 +64,14 @@ var con = mysql.createConnection({
 con.query("SELECT amount from randomvars where nameof = 'ajcounter'", function (err, result) {
 		if (err) throw err;
 		ajpostcounter = result[0].amount;
-		console.log(result);
+		//console.log(result);
 });
 
 //Used for storing election results from AZ, no longer used
 con.query("SELECT amount from randomvars where nameof = 'sinema'", function (err, result) {
 		if (err) throw err;
 		sinema = result[0].amount;
-		console.log(result);
+		//console.log(result);
 });	
 
 //Used for storing election results from AZ, no longer used
@@ -79,7 +79,7 @@ con.query("SELECT amount from randomvars where nameof = 'mcsally' OR nameof = 'c
 		if (err) throw err;
 		cnums = result[0].amount;
 		mcsally = result[1].amount;
-		console.log(cnums + "THIS IS THE IMPORTANT ONE");
+		//console.log(cnums + "THIS IS THE IMPORTANT ONE");
 });	
 /*
 con.query("SELECT amount from randomvars where nameof = 'urlnum'", function (err, result) {
@@ -121,7 +121,7 @@ bot.on("message", async message => {
 	if (check[0] == 'what' && check[1] == 'is' && check.length >= 5 && !isNaN(check[2]))
 		{
 			var right = parseFloat(check[4]);
-			console.log(check.length);
+			//console.log(check.length);
 			if (!isNaN(right))
 			{
 				if (check[3] == 'times' || check[3] == 'x' || check[3] == '*')
@@ -148,7 +148,7 @@ bot.on("message", async message => {
 			else if (check.length == 6)
 			{
 				right = parseFloat(check[5]);
-				console.log(right);
+				//console.log(right);
 				if (!isNaN(right))
 				{
 					if (check[3] == 'multiplied' && check[4] == 'by')
@@ -203,7 +203,7 @@ bot.on("message", async message => {
 			ajpostcounter = ajpostcounter + 1;
 			con.query("update randomvars SET amount = " + ajpostcounter + " where nameof = 'ajcounter'");
 			con.query("commit");
-			console.log(ajpostcounter);
+			//console.log(ajpostcounter);
 		}
 	};
 	/*
@@ -361,6 +361,7 @@ function getcazint () {
 }
 
 function setcazint () {
+	try {
 	var mydata = JSON.parse(this.responseText);
 	cazint = mydata.uploadId;
 	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
@@ -370,6 +371,10 @@ function setcazint () {
 	console.log("trying to get");
 	oReq.open("GET", z);
 	oReq.send();
+	}
+	catch (err) {
+		console.log("error with http scrape");
+	}
 }
 
 function reqListener1 () {
@@ -418,7 +423,7 @@ function reqListener1 () {
 			client.post('statuses/update', {status: z},  function(error, tweet, response) {
 			if(!error){
 			console.log(tweet);  // Tweet body.
-			console.log(response);  // Raw response object.
+			//console.log(response);  // Raw response object.
 			}
 			});
 			mcsally = right;
@@ -427,7 +432,7 @@ function reqListener1 () {
 			con.query("update randomvars SET amount = " + sinema + " where nameof = 'sinema'");
 		}
 		con.query("update randomvars SET amount = " + cazint + " where nameof = 'urlnum'");
-		console.log("updating cazint" + cazint);
+		//console.log("updating cazint" + cazint);
 }
 
 //Used for monitoring Predictit. Currently being used. Runs every minute (the frequency PI updates their API)
@@ -466,7 +471,7 @@ function contractcounter() {
 			client.post('statuses/update', {status: z},  function(error, tweet, response) {
 			if(!error){
 			console.log(tweet);  // Tweet body.
-			console.log(response);  // Raw response object.
+			//console.log(response);  // Raw response object.
 			}
 			});
 		}
@@ -477,7 +482,7 @@ function contractcounter() {
 			client.post('statuses/update', {status: z},  function(error, tweet, response) {
 			if(!error){
 			console.log(tweet);  // Tweet body.
-			console.log(response);  // Raw response object.
+			//console.log(response);  // Raw response object.
 			}
 			});
 		}
@@ -487,7 +492,7 @@ function contractcounter() {
 	else
 	{
 		z = "Alert! No new person added added to dem nom market. num of people: " + i;
-		console.log(z);
+		//console.log(z);
 	}
 }
 
@@ -496,11 +501,16 @@ function getpiVolatility (contractnumber) {
 	//console.log("made it this far \n" + contractnumber);
 	z = "https://www.predictit.org/legacy/Contract/" + contractnumber;
 	//console.log(z);
+	try{
 	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 	var oReq = new XMLHttpRequest();
 	oReq.addEventListener("load", pivolatilitylistener, false);
 	oReq.open("GET", z);
 	oReq.send();
+	}
+	catch (err) {
+		console.log("PI blocked request");
+	}
 }
 
 //This scans the XML request for the current volume
@@ -530,11 +540,16 @@ function pivolatilitylistener (){
 //<td>Today's Volume:</td>
 //initializes the API call
 function getPIdata () {
+	try {
 	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 	var oReq = new XMLHttpRequest();
 	oReq.addEventListener("load", pilistener);
 	oReq.open("GET", "https://www.predictit.org/api/marketdata/all/");
 	oReq.send();
+	}
+	catch (err) {
+		console.log("error getting dem nom");
+	} 
 }
 //Scans the API call. 
 function pilistener () {
@@ -558,7 +573,7 @@ function pilistener () {
 		{
 			if (mydata.markets[increment].contracts[innerinc].id != lastpi.markets[increment].contracts[innerinc].id)
 			{
-				console.log("new contracts added");
+				console.log("new contracts added (2)");
 				lastpi = mydata;
 				return;
 			}
