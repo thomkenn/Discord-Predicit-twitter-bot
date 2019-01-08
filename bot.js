@@ -60,6 +60,7 @@ var con = mysql.createConnection({
 	database: auth.SQLdatabase
 });
 
+try{
 //Tracking the amount of posts stored from AJ
 con.query("SELECT amount from randomvars where nameof = 'ajcounter'", function (err, result) {
 		if (err) throw err;
@@ -94,6 +95,10 @@ con.query("SELECT amount from randomvars where nameof = 'kdogcounter'", function
 	if (err) throw err;
 	kdogpostcounter = result[0].amount;
 });
+}
+catch (err) {
+	console.log("error with query");
+}
 
 // Configure logger settings
 logger.remove(logger.transports.Console);
@@ -171,7 +176,7 @@ bot.on("message", async message => {
 				}
 			}
 		};
-	
+	try {
 	con.query("select uglycat from UGLYCAT", function (err, result) {
 				if (err) throw err;
 				len1 = result.length;
@@ -195,7 +200,11 @@ bot.on("message", async message => {
 	
 	randomNumberB = Math.floor(Math.random() * len3);	
 	randomNumberP = Math.floor(Math.random() * len2);
-	randomNumberC = Math.floor(Math.random() * len1);	
+	randomNumberC = Math.floor(Math.random() * len1);
+	}
+	catch (err) {
+		console.log("error with select burns");
+	}
 	
 	if (message.attachments.first() != null)
 	{
@@ -571,14 +580,29 @@ function pilistener () {
 		}
 		for(innerinc in mydata.markets[increment].contracts)
 		{
-			if (mydata.markets[increment].contracts[innerinc].id != lastpi.markets[increment].contracts[innerinc].id)
+			if (mydata.markets[increment].contracts.length != lastpi.markets[increment].contracts.length)
 			{
-				console.log("new contracts added (2)");
+				console.log("new contracts added (2) named " + mydata.markets[increment].contracts[innerinc].name + "in the market " + mydata.markets[increment]);
 				lastpi = mydata;
 				return;
+			}		
+			if (mydata.markets[increment].contracts[innerinc].id != lastpi.markets[increment].contracts[innerinc].id) //error, this is not working when the order changes
+			{
+				lat = lastpi.markets[increment].contracts.filter(obj => {
+					return obj.id == mydata.markets[increment].contracts[innerinc].id;
+				})
+				if (!lat) {
+					console.log("new contracts added (2) named " + mydata.markets[increment].contracts[innerinc].name + "in the market " + mydata.markets[increment]);
+					lastpi = mydata;
+					return;
+				}
+				console.log(lat[0].lastTradePrice + "this is working!");
 			}
-			comp = mydata.markets[increment].contracts[innerinc].lastTradePrice - lastpi.markets[increment].contracts[innerinc].lastTradePrice
-			var z = "Alert! the market \"" + mydata.markets[increment].contracts[innerinc].longName + "\" has moved by " + comp.toFixed(2) + " cents in the past 60 seconds!";
+			else {
+				lat = [lastpi.markets[increment].contracts[innerinc]];
+			}
+			comp = mydata.markets[increment].contracts[innerinc].lastTradePrice - lat[0].lastTradePrice
+			z = "Alert! the market \"" + mydata.markets[increment].contracts[innerinc].longName + "\" has moved by " + comp.toFixed(2) + " cents in the past 60 seconds!";
 			z += "\nLink: " + mydata.markets[increment].url;
 			//console.log(z);
 
