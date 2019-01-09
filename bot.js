@@ -464,16 +464,16 @@ function contractcounter() {
 	a = 0;
 	for (increments in mydata.contracts)
 	{
-		if (increments.id > a)
+		if (mydata.contracts[increments].id > a)
 		{
-			a = increments.id;
-			z = increments.name
+			a = mydata.contracts[increments].id;
+			z = mydata.contracts[increments].name;
 		}
 		i++;
 	}
 	if (i > cnums)
 	{
-		if ( 0 == i - cnums)
+		if ( 1 == i - cnums)
 		{
 			z = "Alert! New person added added to dem nom market: " + z 
 			bot.users.get(auth.owner).send(z);
