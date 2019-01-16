@@ -482,10 +482,10 @@ function checkdnom() {
 }
 
 function contractcounter() {
+	try {
 	var mydata = JSON.parse(this.responseText);
 	i = 0;
 	a = 0;
-	if (mydata != undefined)
 	for (increments in mydata.contracts)
 	{
 		if (mydata.contracts[increments].id > a)
@@ -526,6 +526,11 @@ function contractcounter() {
 	{
 		z = "Alert! No new person added added to dem nom market. num of people: " + i;
 		//console.log(z);
+	}
+	}
+	catch (err) {
+		z = "invalid get request";
+		console.log(z + ": " + mydata);
 	}
 }
 
