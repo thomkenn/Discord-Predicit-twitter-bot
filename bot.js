@@ -19,6 +19,7 @@ var randomNumberC = 0;
 var randomNumberB = 0;
 var today = new Date();
 var electionday = new Date(2018, 10, 6);
+var shutdownday = new Date(2018, 11, 22);
 var lat = 0;
 var lng = 0;
 var sinema = 0;
@@ -296,6 +297,9 @@ bot.on("message", async message => {
 					message.channel.send(z);
 				});
 				break;
+			case 'shutdown':
+				shutitdown();
+				break;
 			case 'burn':
 				con.query("SELECT uname FROM usernames where u_id = " + message.mentions.users.first().id, function (err, result) {
 					if (result != "") { 
@@ -450,18 +454,38 @@ setInterval(function(){
 	checkdnom();
 },60005);
 
+//Set what day of the shutdown are are in
+setInterval(function(){
+	shutitdown();
+},86400000);
+
+function shutitdown(){
+	z = new Date();
+	z = z - shutdownday - 18000000;
+	z = z / 86400000
+	z = Math.ceil(z);
+	z = "WE ARE NOW IN DAY " + z + " OF THE SHUTDOWN";
+	bot.channels.get("268801667133079552").send(z); 
+}
+
 function checkdnom() {
+	try {
 	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 	var oReq = new XMLHttpRequest();
 	oReq.addEventListener("load", contractcounter);
 	oReq.open("GET", "https://www.predictit.org/api/marketdata/markets/3633");
 	oReq.send();
+	}
+	catch (err) {
+		console.log("error with 2nd pi request");
+	}
 }
 
 function contractcounter() {
 	var mydata = JSON.parse(this.responseText);
 	i = 0;
 	a = 0;
+	if (mydata != undefined)
 	for (increments in mydata.contracts)
 	{
 		if (mydata.contracts[increments].id > a)
@@ -607,7 +631,7 @@ function pilistener () {
 			//console.log(z);
 
 			//console.log("the price has moved: " + comp);
-			if (mydata.markets[increment].contracts[innerinc].longName.includes("tweets") == false && mydata.markets[increment].contracts[innerinc].longName.includes("approval") == false) 
+			if ((mydata.markets[increment].contracts[innerinc].longName.includes("tweets") == false) && (mydata.markets[increment].contracts[innerinc].longName.includes("approval") == false))
 			{
 				if (comp > .09 || comp < -.09)
 				{
@@ -624,38 +648,6 @@ function pilistener () {
 	lastpi = mydata;
 }
 
-/*
-φ1 = lat * 3.14 /180;
-φ2 = 25.930 * 3.14 /180;
-Δφ = ((25.930)-lat) * 3.14 /180;
-Δλ = ((-97.484)-lng) * 3.14 /180;
-
-a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-        Math.cos(φ1) * Math.cos(φ2) *
-        Math.sin(Δλ/2) * Math.sin(Δλ/2);
-c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-
-dist = R * c; 
-dist = (dist / 1609.344).toFixed(2);
-//dist = Math.sqrt((lat-25.930)^2 + (lng-97.484)^2);
-//dist = dist*111*0.621371;
-if (distlong != dist)
-{
-	z = distlong - dist;
-	i = "THE CARAVAN HAS MOVED! NEW Caravan coordinates: latitude: " + lat + " longitude: " + lng + "\nThe caravan is " + dist + " miles away. \nThe caravan is now " + z.toFixed(2) + " miles closer!";
-	bot.channels.get("268801667133079552").send(i);
-	con.query("update caravan SET dist = " + dist + ", lat = " + lat + ", lng = " + lng + " where id = 1");
-	console.log(distlong);
-	distlong = dist;
-	
-	client.post('statuses/update', {status: i + "\nSource: @Cis-org #CARAVAN"},  function(error, tweet, response) {
-	if(!error){
-	console.log(tweet);  // Tweet body.
-	console.log(response);  // Raw response object.
-	}
-}); */
-//}
-//}
 
 
 
