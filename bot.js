@@ -591,6 +591,7 @@ function getPIdata () {
 }
 //Scans the API call. 
 function pilistener () {
+	try {
 	var mydata = JSON.parse(this.responseText);
 	if (lastpi == null)
 	{
@@ -651,6 +652,10 @@ function pilistener () {
 		}
 	}
 	lastpi = mydata;
+	}
+	catch (err) {
+		console.log("error trying to query main api");
+	}
 }
 
 
