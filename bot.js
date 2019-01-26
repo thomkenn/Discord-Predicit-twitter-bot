@@ -25,10 +25,10 @@ var lng = 0;
 var sinema = 0;
 var mcsally = 0;
 var R = 6371e3; // metres
-var φ1 = 0;
-var φ2 = 0;
-var Δφ = 0;
-var Δλ = 0;
+var beto = 0;
+var bernie = 0;
+var gillibrand = 0;
+var kamala = 0;
 var a = 0;
 var c = 0;
 var betindex = 0;
@@ -300,6 +300,9 @@ bot.on("message", async message => {
 			case 'shutdown':
 				shutitdown();
 				break;
+			case 'secrettest':
+				campaignspending();
+				break;
 			case 'burn':
 				con.query("SELECT uname FROM usernames where u_id = " + message.mentions.users.first().id, function (err, result) {
 					if (result != "") { 
@@ -448,6 +451,59 @@ function reqListener1 () {
 		//console.log("updating cazint" + cazint);
 }
 
+setInterval(function(){
+	campaignspending();
+}, 86400000);
+
+function campaignspending() {
+	z = "";
+	con.query("SELECT * from Beto", function (err, result) {
+		if (err) throw err;
+		a = result.length;
+		beto = "As of " + result[a-1].date + ":\nBeto has spent $" + result[a-1].amount + "k on twitter ads\n";
+		//console.log(result);
+	});	
+	con.query("SELECT * from Kamala", function (err, result) {
+		if (err) throw err;
+		a = result.length;
+		kamala = "Kamala has spent $" + result[a-1].amount + "k on twitter ads\n";
+	});
+	console.log(z);
+	con.query("SELECT * from Bernie", function (err, result) {
+		if (err) throw err;
+		a = result.length;
+		bernie = "Bernie has spent $" + result[a-1].amount + "k on twitter ads\n";
+		//console.log(result);
+	});
+	con.query("SELECT * from Warren", function (err, result) {
+		if (err) throw err;
+		a = result.length;
+		z = "Warren has spent $" + result[a-1].amount + "k on twitter ads\n";
+		//console.log(result);
+	});
+	con.query("SELECT * from Klobuchar", function (err, result) {
+		if (err) throw err;
+		a = result.length;
+		lng = "Klobuchar has spent $" + result[a-1].amount + "k on twitter ads\n";
+		//console.log(result);
+	});
+	con.query("SELECT * from Gillibrand", function (err, result) {
+		if (err) throw err;
+		a = result.length;
+		gillibrand = "Gillibrand has spent $" + result[a-1].amount + "k on twitter ads\n";
+		//console.log(result);
+	});
+	setTimeout(function() {
+		z = beto + kamala + bernie + z + lng + gillibrand;
+		client.post('statuses/update', {status: z},  function(error, tweet, response) {
+		if(!error){
+			console.log(tweet);  // Tweet body.
+				//console.log(response);  // Raw response object.
+		}
+		});
+	},5000);
+}
+
 //Used for monitoring Predictit. Currently being used. Runs every minute (the frequency PI updates their API)
 setInterval(function(){ 
 	getPIdata();
@@ -455,16 +511,18 @@ setInterval(function(){
 },60005);
 
 //Set what day of the shutdown are are in
+/*
 setInterval(function(){
 	shutitdown();
 },86400000);
-
+*/
 function shutitdown(){
 	z = new Date();
 	z = z - shutdownday - 18000000;
-	z = z / 86400000
+	z = z / 86400000;
+	z = z - 35;
 	z = Math.ceil(z);
-	z = "WE ARE NOW IN DAY " + z + " OF THE SHUTDOWN";
+	z = "The shutdown ended " + z + " days ago";
 	bot.channels.get("268801667133079552").send(z); 
 }
 
