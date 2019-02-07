@@ -41,6 +41,13 @@ var lastpi = null;
 var comp = 0;
 var cnums = 0;
 var Twitter = require('twitter');
+var beto1 = 0;
+var kamala1 = 0;
+var gillibrand1 = 0;
+var bernie1 = 0;
+var klobuchar1 = 0;
+var warren1 = 0;
+var prescnums = 0;
 
 //Twitter Login
 var client = new Twitter({
@@ -70,9 +77,10 @@ con.query("SELECT amount from randomvars where nameof = 'ajcounter'", function (
 });
 
 //Used for storing election results from AZ, no longer used
-con.query("SELECT amount from randomvars where nameof = 'sinema'", function (err, result) {
+con.query("SELECT amount from randomvars where nameof = 'sinema' OR nameof = 'prescnums'", function (err, result) {
 		if (err) throw err;
-		sinema = result[0].amount;
+		prescnums = result[0].amount;
+		sinema = result[1].amount;
 		//console.log(result);
 });	
 
@@ -273,6 +281,50 @@ bot.on("message", async message => {
 				*/
 				message.channel.send("fuck if i know");
 				break;
+			case 'predictit':
+				z = message.toString().substring(11, (message.toString().length));
+				console.log(z);
+				//console.log(lastpi.markets);
+				if (z == "random")
+				{
+					a = lastpi.markets.length - 1;
+					a = Math.floor((Math.random() * a));
+					z = lastpi.markets[a].name;
+					message.channel.send("Random market selected: " + z);
+				}
+				a = 0;
+				for (increment in lastpi.markets)
+				{
+					if (z == lastpi.markets[increment].name)
+					{
+						z = "```\n"; 
+						for (innerinc in lastpi.markets[increment].contracts)
+							z = z + "Contract Name: " + lastpi.markets[increment].contracts[innerinc].name + "\nLastTradedPrice: " + lastpi.markets[increment].contracts[innerinc].lastTradePrice + "\n"; 
+						z = z + "```";
+						message.channel.send(z);
+						a = 1;
+					}
+				}
+				if (a == 0)
+				{
+					z = "Sorry, market not found. Please be sure to use exact market title.";
+					message.channel.send(z);
+				}
+				break;
+			case 'list':
+				z = "```\nA sample of what you should enter:";
+				for (increment in lastpi.markets)
+				{
+					z = z + lastpi.markets[increment].name + "\n";
+					console.log(lastpi.markets[increment].name);
+					if (increment > 25) {
+						z = z + "\n For more names, consult predictit.com";
+						break;
+					}
+				}
+				z = z + "```";
+				message.channel.send(z);
+				break;
 			case 'insertpz':
 				con.query("INSERT INTO PHRASES VALUES ('" + message.toString().substring(8, (message.toString().length)) + "')");
 				con.query("commit");
@@ -353,7 +405,7 @@ bot.on("message", async message => {
 	message.channel.send(z);
 	};
  
-	 if (message.toString().substring(0, 21) == '<@275064425281486848>') {
+	 if (message.toString().substring(0, 21) == '<@540893791356321803>') {
 		con.query("SELECT phrase from PHRASES", function (err, result) {
 			if (err) throw err;
 			var sendMessage = '<@' + message.author.id + '> ' + result[randomNumberP].phrase;
@@ -451,9 +503,21 @@ function reqListener1 () {
 		//console.log("updating cazint" + cazint);
 }
 
-setInterval(function(){
-	campaignspending();
-}, 86400000);
+checktime();
+
+function checktime() {
+	console.log("starting chcecktime");
+	dotime();
+}
+
+function dotime() {
+var now = new Date();
+var millisTill10 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 8, 0, 0) - now;
+if (millisTill10 < 0) {
+     millisTill10 += 86400000; // it's after 10am, try 10am tomorrow.
+}
+setTimeout(function(){campaignspending(); checktime();}, millisTill10);
+}
 
 function campaignspending() {
 	z = "";
@@ -461,36 +525,43 @@ function campaignspending() {
 		if (err) throw err;
 		a = result.length;
 		beto = "As of " + result[a-1].date + ":\nBeto has spent $" + result[a-1].amount + "k on twitter ads\n";
+		beto1 = "Beto has spent $" + (result[a-1].amount - result[a-2].amount).toFixed(2) + "k on twitter ads\n";
 		//console.log(result);
 	});	
 	con.query("SELECT * from Kamala", function (err, result) {
 		if (err) throw err;
 		a = result.length;
 		kamala = "Kamala has spent $" + result[a-1].amount + "k on twitter ads\n";
+		kamala1 = "Kamala has spent $" + (result[a-1].amount - result[a-2].amount).toFixed(2) + "k on twitter ads\n";
+
 	});
 	console.log(z);
 	con.query("SELECT * from Bernie", function (err, result) {
 		if (err) throw err;
 		a = result.length;
 		bernie = "Bernie has spent $" + result[a-1].amount + "k on twitter ads\n";
+		bernie1 = "Bernie has spent $" + (result[a-1].amount - result[a-2].amount).toFixed(2) + "k on twitter ads\n";
 		//console.log(result);
 	});
 	con.query("SELECT * from Warren", function (err, result) {
 		if (err) throw err;
 		a = result.length;
 		z = "Warren has spent $" + result[a-1].amount + "k on twitter ads\n";
+		warren1 = "Warren has spent $" + (result[a-1].amount - result[a-2].amount).toFixed(2) + "k on twitter ads\n";
 		//console.log(result);
 	});
 	con.query("SELECT * from Klobuchar", function (err, result) {
 		if (err) throw err;
 		a = result.length;
 		lng = "Klobuchar has spent $" + result[a-1].amount + "k on twitter ads\n";
+		klobuchar1 = "Klobuchar has spent $" + (result[a-1].amount - result[a-2].amount).toFixed(2) + "k on twitter ads\n";
 		//console.log(result);
 	});
 	con.query("SELECT * from Gillibrand", function (err, result) {
 		if (err) throw err;
 		a = result.length;
 		gillibrand = "Gillibrand has spent $" + result[a-1].amount + "k on twitter ads\n";
+		gillibrand1 = "Gillibrand has spent $" + (result[a-1].amount - result[a-2].amount).toFixed(2) + "k on twitter ads\n";
 		//console.log(result);
 	});
 	setTimeout(function() {
@@ -501,6 +572,17 @@ function campaignspending() {
 				//console.log(response);  // Raw response object.
 		}
 		});
+		//console.log(z);
+		setTimeout(function() {
+			z = "In the past 24 hours:\n" + beto1 + kamala1 + bernie1 + gillibrand1 + klobuchar1 + warren1;
+			client.post('statuses/update', {status: z},  function(error, tweet, response) {
+			if(!error){
+				console.log(tweet);  // Tweet body.
+					//console.log(response);  // Raw response object.
+			}
+			});
+			console.log(z);
+		},6000);
 	},5000);
 }
 
@@ -508,6 +590,7 @@ function campaignspending() {
 setInterval(function(){ 
 	getPIdata();
 	checkdnom();
+	checkpres();
 },60005);
 
 //Set what day of the shutdown are are in
@@ -524,6 +607,74 @@ function shutitdown(){
 	z = Math.ceil(z);
 	z = "The shutdown ended " + z + " days ago";
 	bot.channels.get("268801667133079552").send(z); 
+}
+
+function checkpres() {
+	try {
+	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+	var oReq = new XMLHttpRequest();
+	oReq.addEventListener("load", prescontractcounter);
+	oReq.open("GET", "https://www.predictit.org/api/marketdata/markets/3698");
+	oReq.send();
+	}
+	catch (err) {
+		console.log("error with 3rd pi request");
+	}
+}
+
+function prescontractcounter() {
+	try {
+	var mydata = JSON.parse(this.responseText);
+	i = 0;
+	a = 0;
+	for (increments in mydata.contracts)
+	{
+		if (mydata.contracts[increments].id > a)
+		{
+			a = mydata.contracts[increments].id;
+			z = mydata.contracts[increments].name;
+		}
+		i++;
+	}
+	if (i > prescnums)
+	{
+		if ( 1 == i - prescnums)
+		{
+			z = "Alert! New person added added to pres market: " + z 
+			bot.users.get(auth.owner).send(z);
+			client.post('statuses/update', {status: z},  function(error, tweet, response) {
+			if(!error){
+			console.log(tweet);  // Tweet body.
+			//console.log(response);  // Raw response object.
+			}
+			});
+			console.log(z);
+		}
+		else
+		{
+			z = "Alert! " + (i - prescnums) + " new people added to pres market. Newest being: " + z;
+			bot.users.get(auth.owner).send(z);
+			client.post('statuses/update', {status: z},  function(error, tweet, response) {
+			if(!error){
+			console.log(tweet);  // Tweet body.
+			//console.log(response);  // Raw response object.
+			}
+			});
+		}
+		con.query("update randomvars SET amount = " + i + " where nameof = 'prescnums'");
+		prescnums = i;
+	}
+	else
+	{
+		z = "Alert! No new person added added to pres market. num of people: " + i;
+		//console.log(z);
+	}
+	}
+	catch (err) {
+		z = "invalid get request";
+		console.log(z + ": " + mydata);
+	}
+	
 }
 
 function checkdnom() {
@@ -590,6 +741,7 @@ function contractcounter() {
 		z = "invalid get request";
 		console.log(z + ": " + mydata);
 	}
+	
 }
 
 //This is used to retrieve contract specific info. contract number is passed to it, and its pulled up, site scanned. 
@@ -715,7 +867,3 @@ function pilistener () {
 		console.log("error trying to query main api");
 	}
 }
-
-
-
-
