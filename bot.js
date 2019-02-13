@@ -303,12 +303,26 @@ bot.on("message", async message => {
 						z = z + "```";
 						message.channel.send(z);
 						a = 1;
+						break;
+					}
+					else if (((lastpi.markets[increment].name).toLowerCase()).includes(z.toLowerCase()))
+					{
+						i = "```\First match found:\n";
+						i = i + "Market found: " + lastpi.markets[increment].name + "\n";
+						for (innerinc in lastpi.markets[increment].contracts)
+							i = i + "Contract Name: " + lastpi.markets[increment].contracts[innerinc].name + "\nLastTradedPrice: " + lastpi.markets[increment].contracts[innerinc].lastTradePrice + "\n";
+						i = i + "```";
+						a = 2;
 					}
 				}
 				if (a == 0)
 				{
-					z = "Sorry, market not found. Please be sure to use exact market title.";
+					z = "Sorry, market not found. Please be sure to use exact market title and capitalize names.";
 					message.channel.send(z);
+				}
+				else if (a == 2)
+				{
+					message.channel.send(i);
 				}
 				break;
 			case 'list':
