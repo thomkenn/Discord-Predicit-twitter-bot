@@ -317,13 +317,167 @@ bot.on("message", async message => {
 				}
 				if (a == 0)
 				{
-					z = "Sorry, market not found. Please be sure to use exact market title and capitalize names.";
+					z = "Sorry, market not found. Please be sure to use exact words from market title.";
 					message.channel.send(z);
 				}
-				else if (a == 2)
+				else if (a == 2)	
 				{
 					message.channel.send(i);
 				}
+				break;
+			case 'negrisk': 
+				output = 0;
+				z = message.toString().substring(9, (message.toString().length));
+				console.log(z);
+				if (z == "all")
+				{
+					z = "```\nCurrent Neg Risk:\n";
+					output = 0;
+					for (increment in lastpi.markets)
+					{
+						//console.log(mydata.markets[increment].name);
+						if (lastpi.markets[increment].contracts.length >= 2)
+						{
+							i = 0;
+							for(innerinc in lastpi.markets[increment].contracts)
+							{
+								if (lastpi.markets[increment].contracts[innerinc].bestBuyNoCost == null)
+									i += 0;
+								else 
+									i += (1 - lastpi.markets[increment].contracts[innerinc].bestBuyNoCost);
+							}
+							a = lastpi.markets[increment].contracts.length;
+							if (a == 2) {
+								if (i >= 1.06)
+								{
+									z = z + "Market: " + lastpi.markets[increment].name + "\nNeg Risk: " + i.toFixed(2) +"\nURL: " + lastpi.markets[increment].url + "\n";
+									output = 1;
+								}
+							}
+							else if (a == 3) {
+								if (i >= 1.08)
+								{
+									z = z + "Market: " + lastpi.markets[increment].name + "\nNeg Risk: " + i.toFixed(2) +"\nURL: " + lastpi.markets[increment].url + "\n";
+									output = 1;
+								}							}
+							else if (a == 4 || a == 5) {
+								if (i >= 1.09)
+								{
+									z = z + "Market: " + lastpi.markets[increment].name + "\nNeg Risk: " + i.toFixed(2) +"\nURL: " + lastpi.markets[increment].url + "\n";
+									output = 1;
+								}							}
+							else if (a >= 5 && a <= 10) {
+								if (i >= 1.10)
+								{
+									z = z + "Market: " + lastpi.markets[increment].name + "\nNeg Risk: " + i.toFixed(2) +"\nURL: " + lastpi.markets[increment].url + "\n";
+									output = 1;
+								}							}
+							else if (a > 10) {
+								if (i >= 1.11)
+								{
+									z = z + "Market: " + lastpi.markets[increment].name + "\nNeg Risk: " + i.toFixed(2) +"\nURL: " + lastpi.markets[increment].url + "\n";
+									output = 1;
+								}							}
+						}
+					}
+					z = z + "```";
+					if (output == 0)
+						z = "No neg risk currently available";
+					message.channel.send(z);
+					break;
+				}
+				//console.log(lastpi.markets);
+				if (z == "random")
+				{
+					do {
+					a = lastpi.markets.length - 1;
+					a = Math.floor((Math.random() * a));
+					z = lastpi.markets[a].name;
+					i = lastpi.markets[a].contracts.length;
+					} while (i < 2);
+					message.channel.send("Random market selected: " + z);
+				}
+				a = 0;
+				for (increment in lastpi.markets)
+				{
+					if (z == lastpi.markets[increment].name)
+					{
+						output = increment;
+						a = 1;
+						break;
+					}
+					else if (((lastpi.markets[increment].name).toLowerCase()).includes(z.toLowerCase()))
+					{
+						i = lastpi.markets[increment].name;
+						if (a != 1)
+							output = increment;
+						a = 2;
+					}
+				}
+				if (a == 0)
+				{
+					z = "Sorry, market not found. Please be sure to use exact market title.";
+					message.channel.send(z);
+					break;
+				}
+				else if (a == 2)
+				{
+					z = i;
+				}
+				if (lastpi.markets[output].contracts.length >= 2)
+				{
+					i = 0;
+					for(innerinc in lastpi.markets[output].contracts)
+					{
+						if (lastpi.markets[output].contracts[innerinc].bestBuyNoCost == null)
+							i += 0;
+						else 
+							i += (1 - lastpi.markets[output].contracts[innerinc].bestBuyNoCost);
+					}
+					z = '```\n'
+					i = i.toFixed(2);
+					z = z +"Market: " + lastpi.markets[increment].name + "\nCombined neg risk: " + i +"\nURL: " + lastpi.markets[increment].url + "\n";
+					z = z + '```';
+					a = lastpi.markets[output].contracts.length;
+					if (a == 2) {
+						z = z + "\nNeg risk? ";
+						if (i >= 1.06)
+							z = z + "**yes**";
+						else
+							z = z + "**no**";
+					}
+					else if (a == 3) {
+						z = z + "\nNeg risk? ";
+						if (i >= 1.08)
+							z = z + "**yes**";
+						else
+							z = z + "**no**";
+					}
+					else if (a == 4 || a == 5) {
+						z = z + "\nNeg risk? ";
+						if (i >= 1.09)
+							z = z + "**yes**";
+						else
+							z = z + "**no**";
+					}
+					else if (a >= 5 && a <= 10) {
+						z = z + "\nNeg risk? ";
+						if (i >= 1.10)
+							z = z + "**yes**";
+						else
+							z = z + "**no**";
+					}
+					else if (a > 10) {
+						z = z + "\nNeg risk? ";
+						if (i >= 1.11)
+							z = z + "**yes**";
+						else
+							z = z + "**no**";
+					}
+					message.channel.send(z);
+				}
+				else
+						message.channel.send("This is not a linked market");
 				break;
 			case 'list':
 				z = "```\nA sample of what you should enter:";
