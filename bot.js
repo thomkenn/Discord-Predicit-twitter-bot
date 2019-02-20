@@ -436,7 +436,7 @@ bot.on("message", async message => {
 					}
 					z = '```\n'
 					i = i.toFixed(2);
-					z = z +"Market: " + lastpi.markets[increment].name + "\nCombined neg risk: " + i +"\nURL: " + lastpi.markets[increment].url + "\n";
+					z = z +"Market: " + lastpi.markets[output].name + "\nCombined neg risk: " + i +"\nURL: " + lastpi.markets[output].url + "\n";
 					z = z + '```';
 					a = lastpi.markets[output].contracts.length;
 					if (a == 2) {
