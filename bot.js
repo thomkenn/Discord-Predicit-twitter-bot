@@ -238,6 +238,13 @@ bot.on("message", async message => {
 		con.query("update randomvars SET amount = " + kdogpostcounter + " where nameof = 'kdogcounter'");
 		con.query("commit");
 	}
+	if (message.toString().substring(0, 1) == '$') {
+        const args1 = message.content.slice(1).trim().split(/ +/g);
+		var stock = args1.shift().toUpperCase();
+	    console.log(stock);
+		z = message.channel.id;
+		checkstock(stock);
+	}
     if (message.toString().substring(0, 1) == '!') {
         const args = message.content.slice(1).trim().split(/ +/g);
 		const cmd = args.shift().toLowerCase();
@@ -282,6 +289,11 @@ bot.on("message", async message => {
 				message.channel.send("fuck if i know");
 				break;
 			case 'predictit':
+				if (lastpi == null)
+				{	
+					message.channel.send("Error retrieving data. Please wait 60 seconds and try again");
+					break;
+				}
 				z = message.toString().substring(11, (message.toString().length));
 				console.log(z);
 				//console.log(lastpi.markets);
@@ -301,6 +313,7 @@ bot.on("message", async message => {
 						for (innerinc in lastpi.markets[increment].contracts)
 							z = z + "Contract Name: " + lastpi.markets[increment].contracts[innerinc].name + "\nLastTradedPrice: " + lastpi.markets[increment].contracts[innerinc].lastTradePrice + "\n"; 
 						z = z + "```";
+						z = lastpi.markets[increment].url + "\n" + z;
 						message.channel.send(z);
 						a = 1;
 						break;
@@ -312,6 +325,7 @@ bot.on("message", async message => {
 						for (innerinc in lastpi.markets[increment].contracts)
 							i = i + "Contract Name: " + lastpi.markets[increment].contracts[innerinc].name + "\nLastTradedPrice: " + lastpi.markets[increment].contracts[innerinc].lastTradePrice + "\n";
 						i = i + "```";
+						i = lastpi.markets[increment].url + "\n" + i;
 						a = 2;
 					}
 				}
@@ -329,6 +343,11 @@ bot.on("message", async message => {
 				output = 0;
 				z = message.toString().substring(9, (message.toString().length));
 				console.log(z);
+				if (lastpi == null)
+				{	
+					message.channel.send("Error retrieving data. Please wait 60 seconds and try again");
+					break;
+				}
 				if (z == "all")
 				{
 					z = "```\nCurrent Neg Risk:\n";
@@ -477,7 +496,8 @@ bot.on("message", async message => {
 					message.channel.send(z);
 				}
 				else
-						message.channel.send("This is not a linked market");
+						
+						message.channel.send("Market selected: " + z + "\nThis is not a linked market");
 				break;
 			case 'list':
 				z = "```\nA sample of what you should enter:";
@@ -522,6 +542,11 @@ bot.on("message", async message => {
 				break;
 			case 'secrettest':
 				campaignspending();
+				break;
+			case 'djia':
+				z = message.channel.id;
+				checkdow();
+				//console.log(message.channel.id + "main body");
 				break;
 			case 'burn':
 				con.query("SELECT uname FROM usernames where u_id = " + message.mentions.users.first().id, function (err, result) {
@@ -742,7 +767,7 @@ function campaignspending() {
 		});
 		//console.log(z);
 		setTimeout(function() {
-			z = "In the past 24 hours:\n" + beto1 + kamala1 + bernie1 + gillibrand1 + klobuchar1 + warren1;
+			z = "In the past 24 hours:\n" + beto1 + kamala1 + bernie1 + warren1 + klobuchar1 + gillibrand1;
 			client.post('statuses/update', {status: z},  function(error, tweet, response) {
 			if(!error){
 				console.log(tweet);  // Tweet body.
@@ -790,6 +815,62 @@ function checkpres() {
 	}
 }
 
+function checkstock(stock) {
+	try {
+	console.log("stock: " + stock);
+	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+	var oReq = new XMLHttpRequest();
+	oReq.addEventListener("load", stockcheck);
+	i = "https://www.googleapis.com/customsearch/v1?key=AIzaSyDj-tjmClRMWfQQjEyj_8Ede6JG8oHzH9U&cx=009270010320727529401:6du5wfyvl7a&q=" + stock;
+	console.log(i);
+	oReq.open("GET", i);
+	oReq.send();
+	}
+	catch (err) {
+		console.log("error with google request");
+	}
+}
+
+function stockcheck() {
+	var mydata = JSON.parse(this.responseText);
+	//console.log(mydata.items[0].pagemap);	
+	i = mydata.items[0].pagemap.financialquote[0].name + "\n";
+	i = i + (mydata.items[0].pagemap.financialquote[0].price) + "\n";
+	if (mydata.items[0].pagemap.financialquote[0].pricechange > 0)
+		i = i + "```CSS\n+" + mydata.items[0].pagemap.financialquote[0].pricechange + "\n```";
+	else
+		i = i + "```DIFF\n" + mydata.items[0].pagemap.financialquote[0].pricechange + "\n```";
+	bot.channels.get(z).send(i);
+	return;
+}
+
+function checkdow() {
+	try {
+	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+	var oReq = new XMLHttpRequest();
+	oReq.addEventListener("load", dowcheck);
+	oReq.open("GET", "https://www.googleapis.com/customsearch/v1?key=AIzaSyDj-tjmClRMWfQQjEyj_8Ede6JG8oHzH9U&cx=009270010320727529401:2etur6e4nrg&q=.djia");
+	oReq.send();
+	}
+	catch (err) {
+		console.log("error with google request");
+	}
+}
+
+function dowcheck() {
+	var mydata = JSON.parse(this.responseText);
+	//console.log(mydata.items[0].pagemap);	
+	i = "DJIA: ";
+	i = i + (mydata.items[0].pagemap.financialquote[0].price).substring(0,2) + ',' + (mydata.items[0].pagemap.financialquote[0].price).substring(2,(mydata.items[0].pagemap.financialquote[0].price).length) + "\n";
+	if (mydata.items[0].pagemap.financialquote[0].pricechange > 0)
+		i = i + "```CSS\n+" + mydata.items[0].pagemap.financialquote[0].pricechange + "\n```";
+	else
+		i = i + "```DIFF\n" + mydata.items[0].pagemap.financialquote[0].pricechange + "\n```";
+	bot.channels.get(z).send(i);
+	return;
+}
+
+//https://www.googleapis.com/customsearch/v1?key=AIzaSyDj-tjmClRMWfQQjEyj_8Ede6JG8oHzH9U&cx=009270010320727529401:ii6u0y1plls&q=Dow Jones Industrial Average
 function prescontractcounter() {
 	try {
 	var mydata = JSON.parse(this.responseText);
