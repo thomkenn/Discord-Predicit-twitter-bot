@@ -1,2 +1,2 @@
 # Discord-Predicit-twitter-bot
-Interacts with discord, predictit, and twitter
+Interacts with discord, and twitter
