@@ -18,12 +18,10 @@ var randomNumberP = 0;
 var randomNumberC = 0;
 var randomNumberB = 0;
 var today = new Date();
-var electionday = new Date(2018, 10, 6);
+var electionday = new Date(2020, 10, 3);
 var shutdownday = new Date(2018, 11, 22);
 var lat = 0;
 var lng = 0;
-var sinema = 0;
-var mcsally = 0;
 var R = 6371e3; // metres
 var beto = 0;
 var bernie = 0;
@@ -48,6 +46,13 @@ var bernie1 = 0;
 var klobuchar1 = 0;
 var warren1 = 0;
 var prescnums = 0;
+var currnegrisk = "";
+var currnegriskv2 = "";
+var negriskcounter = 0;
+var access = "";
+var cost = 0;
+var payout = 0;
+var cone = 0;
 
 //Twitter Login
 var client = new Twitter({
@@ -76,28 +81,19 @@ con.query("SELECT amount from randomvars where nameof = 'ajcounter'", function (
 		//console.log(result);
 });
 
-//Used for storing election results from AZ, no longer used
-con.query("SELECT amount from randomvars where nameof = 'sinema' OR nameof = 'prescnums'", function (err, result) {
+//Used for storing contract nums
+con.query("SELECT amount from randomvars where nameof = 'prescnums'", function (err, result) {
 		if (err) throw err;
 		prescnums = result[0].amount;
-		sinema = result[1].amount;
 		//console.log(result);
-});	
+});
 
-//Used for storing election results from AZ, no longer used
-con.query("SELECT amount from randomvars where nameof = 'mcsally' OR nameof = 'contractnums'", function (err, result) {
+//Used for storing contract nums
+con.query("SELECT amount from randomvars where nameof = 'contractnums'", function (err, result) {
 		if (err) throw err;
 		cnums = result[0].amount;
-		mcsally = result[1].amount;
 		//console.log(cnums + "THIS IS THE IMPORTANT ONE");
-});	
-/*
-con.query("SELECT amount from randomvars where nameof = 'urlnum'", function (err, result) {
-		if (err) throw err;
-		cazint = result[0].amount;
-		console.log(result);
-});	
-*/
+});
 
 //Tracking the amount of posts stored from kdog
 con.query("SELECT amount from randomvars where nameof = 'kdogcounter'", function (err, result) {
@@ -190,7 +186,7 @@ bot.on("message", async message => {
 				if (err) throw err;
 				len1 = result.length;
 	});
-	
+
 	con.query("SELECT phrase from PHRASES", function (err, result) {
 				if (err) throw err;
 				len2 = result.length;
@@ -206,15 +202,15 @@ bot.on("message", async message => {
 				if (err) throw err;
 				betindex = result.length;
 	});
-	
-	randomNumberB = Math.floor(Math.random() * len3);	
+
+	randomNumberB = Math.floor(Math.random() * len3);
 	randomNumberP = Math.floor(Math.random() * len2);
 	randomNumberC = Math.floor(Math.random() * len1);
 	}
 	catch (err) {
 		console.log("error with select burns");
 	}
-	
+
 	if (message.attachments.first() != null)
 	{
 		if( message.attachments.first().filename == "kdog-bush.gif" && message.author.id == 181830914022572032){
@@ -224,32 +220,17 @@ bot.on("message", async message => {
 			//console.log(ajpostcounter);
 		}
 	};
-	/*
-	if (randomNumberB % 10 == 0 && message.content != "" && !message.content.toString().includes("'") && typeof(message.attachments.first()) == "undefined" && typeof(message.mentions.users.first()) == "undefined")
-	{
-		con.query("INSERT INTO PHRASES VALUES ('" + message.content + "')");
-		con.query("commit");
-		console.log(message.content);
-	}
-	*/
 	if (message.author.id == registername)
 	{
 		kdogpostcounter = kdogpostcounter + 1;
 		con.query("update randomvars SET amount = " + kdogpostcounter + " where nameof = 'kdogcounter'");
 		con.query("commit");
 	}
-	if (message.toString().substring(0, 1) == '$') {
-        const args1 = message.content.slice(1).trim().split(/ +/g);
-		var stock = args1.shift().toUpperCase();
-	    console.log(stock);
-		z = message.channel.id;
-		checkstock(stock);
-	}
     if (message.toString().substring(0, 1) == '!') {
         const args = message.content.slice(1).trim().split(/ +/g);
 		const cmd = args.shift().toLowerCase();
 	    console.log(cmd);
-		
+
         //args = args.splice(1);
         switch(cmd) {
             case 'ping':
@@ -267,17 +248,6 @@ bot.on("message", async message => {
 				var sendMessage = '<@' + message.author.id + '> AJ Gif Posts: ' + ajpostcounter + "\nKdog comments: " + kdogpostcounter + "\nRatio: " + (ajpostcounter/kdogpostcounter*100).toFixed(2) + "%, which is " + ((((ajpostcounter/kdogpostcounter)/(1/200))*100)-100).toFixed(2) + "% more frequent than cab said";
 				message.channel.send(sendMessage);
 				break;
-			/*
-			case 'arizona':
-				getcazint();
-				z = cazbase + cazint + cazend;
-				var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-				var oReq = new XMLHttpRequest();
-				oReq.addEventListener("load", reqListener);
-				oReq.open("GET", z);
-				oReq.send();
-				break;
-			*/
 			case 'caravan':
 				/*
 				var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
@@ -290,7 +260,7 @@ bot.on("message", async message => {
 				break;
 			case 'predictit':
 				if (lastpi == null)
-				{	
+				{
 					message.channel.send("Error retrieving data. Please wait 60 seconds and try again");
 					break;
 				}
@@ -309,9 +279,9 @@ bot.on("message", async message => {
 				{
 					if (z == lastpi.markets[increment].name)
 					{
-						z = "```\n"; 
+						z = "```\n";
 						for (innerinc in lastpi.markets[increment].contracts)
-							z = z + "Contract Name: " + lastpi.markets[increment].contracts[innerinc].name + "\nLastTradedPrice: " + lastpi.markets[increment].contracts[innerinc].lastTradePrice + "\n"; 
+							z = z + "Contract Name: " + lastpi.markets[increment].contracts[innerinc].name + "\nLastTradedPrice: " + lastpi.markets[increment].contracts[innerinc].lastTradePrice + "\n";
 						z = z + "```";
 						z = lastpi.markets[increment].url + "\n" + z;
 						message.channel.send(z);
@@ -331,22 +301,179 @@ bot.on("message", async message => {
 				}
 				if (a == 0)
 				{
+					console.log(lastpi);
 					z = "Sorry, market not found. Please be sure to use exact words from market title.";
 					message.channel.send(z);
 				}
-				else if (a == 2)	
+				else if (a == 2)
 				{
 					message.channel.send(i);
 				}
 				break;
-			case 'negrisk': 
+			case 'posrisk':
+				output = 0;
+				z = "```\nCurrent Pos Risk:\n";
+				if (lastpi == null)
+				{
+					message.channel.send("Error retrieving data. Please wait 60 seconds and try again");
+					getPIdata();
+					break;
+				}
+				for (increment in lastpi.markets)
+					{
+						//console.log(mydata.markets[increment].name);
+						if (lastpi.markets[increment].contracts.length >= 2)
+						{
+							i = 0;
+							for(innerinc in lastpi.markets[increment].contracts)
+							{
+								if (lastpi.markets[increment].contracts[innerinc].bestBuyYesCost == null)
+									i = 1;
+								else if (lastpi.markets[increment].contracts[innerinc].bestBuyYesCost > i)
+								{
+									i = lastpi.markets[increment].contracts[innerinc].bestBuyYesCost;
+									a = innerinc;
+								}
+							}
+							if (i < .95)
+							{
+								i = 1 - i;
+								i = i * .9;
+								for (innerinc in lastpi.markets[increment].contracts)
+								{
+									if (innerinc != a)
+									{
+										i = i - lastpi.markets[increment].contracts[innerinc].bestBuyYesCost;
+									}
+								}
+								if (i > 0)
+								{
+									z = z + "Market: " + lastpi.markets[increment].name + "\nPos Risk: " + i.toFixed(2) +"\nURL: " + lastpi.markets[increment].url + "\n";
+									output = 1;
+								};
+							}
+						}
+					}
+				z = z + "```";
+				if (output == 0)
+					z = "No pos risk currently available";
+				message.channel.send(z);
+        break;
+			case 'negriskv2':
+				output = 0;
+				z = message.toString().substring(11, (message.toString().length));
+				console.log(z);
+				if (lastpi == null)
+				{
+					message.channel.send("Error retrieving data. Please wait 60 seconds and try again");
+					getPIdata();
+					break;
+				}
+				a = 0;
+				for (increment in lastpi.markets)
+				{
+					if (z == lastpi.markets[increment].name)
+					{
+						output = increment;
+						a = 1;
+						break;
+					}
+					else if (((lastpi.markets[increment].name).toLowerCase()).includes(z.toLowerCase()))
+					{
+						i = lastpi.markets[increment].name;
+						if (a != 1)
+							output = increment;
+						a = 2;
+					}
+				}
+				if (a == 0)
+				{
+					z = "Sorry, market not found. Please be sure to use exact market title.";
+					message.channel.send(z);
+					break;
+				}
+				else if (a == 2)
+				{
+					z = i;
+				}
+				if (lastpi.markets[output].contracts.length >= 2)
+				{
+					i = 0;
+					cost = 0;
+					payout = 0;
+					cone = 0;
+					if (lastpi.markets[output].contracts[0].bestBuyNoCost == null)
+						cone = 99;
+					else
+						cone = lastpi.markets[output].contracts[0].bestBuyNoCost * 100;
+					payout = (90 + .1 * cone) * (lastpi.markets[output].contracts.length - 1);
+					cost = cone;
+					for(innerinc in lastpi.markets[output].contracts)
+					{
+						if (innerinc != 0) {
+							if (lastpi.markets[output].contracts[innerinc].bestBuyNoCost == null)
+							{
+								i += 1;
+								payout = (90 + .1 * cone) * (lastpi.markets[output].contracts.length - 1 - i);
+							}
+							else
+								cost = cost + (lastpi.markets[output].contracts[innerinc].bestBuyNoCost * 100) * (cone * .1 + 90) / (90 + .1 * (lastpi.markets[output].contracts[innerinc].bestBuyNoCost * 100));
+						}
+					}
+					cost = cost.toFixed(2);
+					payout = payout.toFixed(2);
+					if (0 <= payout - cost)
+					{
+						message.channel.send("The cost is: " + cost + " the payout is " + payout + ". Neg risk possible");
+					}
+					else
+						message.channel.send("The cost is: " + cost + " the payout is " + payout + ". Neg risk NOT possible");
+				}
+				break;
+			case 'negrisk':
 				output = 0;
 				z = message.toString().substring(9, (message.toString().length));
 				console.log(z);
 				if (lastpi == null)
-				{	
+				{
 					message.channel.send("Error retrieving data. Please wait 60 seconds and try again");
+					getPIdata();
 					break;
+				}
+				if (z == "top")
+				{
+					var topmar = [];
+					z = "```\nCurrent Neg Risk:\n";
+					output = 0;
+					for (increment in lastpi.markets)
+					{
+						//console.log(mydata.markets[increment].name);
+						if (lastpi.markets[increment].contracts.length >= 2)
+						{
+							i = 0;
+							for(innerinc in lastpi.markets[increment].contracts)
+							{
+								if (lastpi.markets[increment].contracts[innerinc].bestBuyNoCost == null)
+									i += 0;
+								else
+									i += (1 - lastpi.markets[increment].contracts[innerinc].bestBuyNoCost);
+							}
+							a = lastpi.markets[increment].contracts.length;
+							topmar.push(i.toFixed(2) + ", Market: " + lastpi.markets[increment].name + "\nURL: " + lastpi.markets[increment].url + "\n");
+						}
+					}
+					topmar.sort();
+					topmar.reverse();
+					z += topmar[0];
+					z += topmar[1];
+					z += topmar[2];
+					z += topmar[3];
+					z += topmar[4];
+					z += topmar[5];
+					z = z + "```";
+					message.channel.send(z);
+					break;
+
 				}
 				if (z == "all")
 				{
@@ -362,7 +489,7 @@ bot.on("message", async message => {
 							{
 								if (lastpi.markets[increment].contracts[innerinc].bestBuyNoCost == null)
 									i += 0;
-								else 
+								else
 									i += (1 - lastpi.markets[increment].contracts[innerinc].bestBuyNoCost);
 							}
 							a = lastpi.markets[increment].contracts.length;
@@ -450,7 +577,7 @@ bot.on("message", async message => {
 					{
 						if (lastpi.markets[output].contracts[innerinc].bestBuyNoCost == null)
 							i += 0;
-						else 
+						else
 							i += (1 - lastpi.markets[output].contracts[innerinc].bestBuyNoCost);
 					}
 					z = '```\n'
@@ -496,16 +623,21 @@ bot.on("message", async message => {
 					message.channel.send(z);
 				}
 				else
-						
+
 						message.channel.send("Market selected: " + z + "\nThis is not a linked market");
 				break;
 			case 'list':
 				z = "```\nA sample of what you should enter:";
+				var i = 0;
 				for (increment in lastpi.markets)
 				{
-					z = z + lastpi.markets[increment].name + "\n";
-					console.log(lastpi.markets[increment].name);
-					if (increment > 25) {
+					if(0 == increment % 2)
+					{
+						i = i + 1;
+						z = z + lastpi.markets[increment].name + "\n";
+						console.log(lastpi.markets[increment].name);
+					}
+					if (i > 25) {
 						z = z + "\n For more names, consult predictit.com";
 						break;
 					}
@@ -550,7 +682,7 @@ bot.on("message", async message => {
 				break;
 			case 'burn':
 				con.query("SELECT uname FROM usernames where u_id = " + message.mentions.users.first().id, function (err, result) {
-					if (result != "") { 
+					if (result != "") {
 						if (err) throw err;
 							con.query("SELECT burn FROM BURNS", function (err, resultedburn) {
 								if (err) throw err;
@@ -569,133 +701,18 @@ bot.on("message", async message => {
             // Just add any case commands if you want to..
          }
      }
-	 
-	 //Used for tracking AZ election results. No longer used, will be removed. 
-	function reqListener () {
-	var mydata = JSON.parse(this.responseText);
-	z = "";
-	i = mydata[0].ContestTotalVotes;
-	if (mydata[0].Choices[0].PartyShortName == "DEM")
-	{
-		z = "Current Sinema vote: " + mydata[0].Choices[0].ChoiceTotalVotes;
-		z = z + "\n" + "Current Mcsally Vote: " + mydata[0].Choices[1].ChoiceTotalVotes;
-		z = z + "\n" + "Sinema leads by: " + (mydata[0].Choices[0].ChoiceTotalVotes - mydata[0].Choices[1].ChoiceTotalVotes);
-		mcsally = mydata[0].Choices[1].ChoiceTotalVotes;
-		sinema = mydata[0].Choices[0].ChoiceTotalVotes;
-		c = (sinema / i - mcsally / i) * 100;
-		z = z + "\n" + "Current MOV: " + c.toFixed(2) + "% +D";
-	}
-	else if (mydata[0].Choices[0].PartyShortName == "REP")
-	{
-		z = "Current Mcsally vote: " + mydata[0].Choices[0].ChoiceTotalVotes;
-		z = z + "\n" + "Current Sinema Vote: " + mydata[0].Choices[1].ChoiceTotalVotes;
-		z = z + "\n" + "Mcsally leads by: " + (mydata[0].Choices[0].ChoiceTotalVotes - mydata[0].Choices[1].ChoiceTotalVotes);
-		mcsally = mydata[0].Choices[0].ChoiceTotalVotes;
-		sinema = mydata[0].Choices[1].ChoiceTotalVotes;
-		c = (mcsally / i - sinema / i) * 100;
-		z = z + "\n" + "Current MOV: " + c.toFixed(2) + "% +R";
-	}
-	message.channel.send(z);
-	};
- 
-	 if (message.toString().substring(0, 21) == '<@540893791356321803>') {
-		con.query("SELECT phrase from PHRASES", function (err, result) {
-			if (err) throw err;
-			var sendMessage = '<@' + message.author.id + '> ' + result[randomNumberP].phrase;
-			message.channel.send(sendMessage);
-		 });
+	if (message.toString().substring(0, 21) == '<@540893791356321803>') {
+		if (message.author.id != '181830914022572032')
+		{
+			con.query("SELECT phrase from PHRASES", function (err, result) {
+				if (err) throw err;
+				var sendMessage = '<@' + message.author.id + '> ' + result[randomNumberP].phrase;
+				message.channel.send(sendMessage);
+			});
+		}
 	}
 });
-
-//Used to initialize AZ election results monitoring.No longer used. 
 /*
-setInterval(function(){ 
-	getcazint();
-},5000);
-*/
-function getcazint () {
-	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-	var oReq = new XMLHttpRequest();
-	oReq.addEventListener("load", setcazint);
-	oReq.open("GET", "https://cdn1.arizona.vote/data/4/0/election_4_0.json", false);
-	oReq.send();
-}
-
-function setcazint () {
-	try {
-	var mydata = JSON.parse(this.responseText);
-	cazint = mydata.uploadId;
-	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-	var oReq = new XMLHttpRequest();
-	z = cazbase + cazint + cazend;
-	oReq.addEventListener("load", reqListener1);
-	console.log("trying to get");
-	oReq.open("GET", z);
-	oReq.send();
-	}
-	catch (err) {
-		console.log("error with http scrape");
-	}
-}
-
-function reqListener1 () {
-		console.log(cazint);
-		var mydata = JSON.parse(this.responseText);
-		i = mydata[0].ContestTotalVotes;
-		if (mydata[0].Choices[0].PartyShortName == "DEM")
-		{
-			right = mydata[0].Choices[1].ChoiceTotalVotes;
-			left = mydata[0].Choices[0].ChoiceTotalVotes;
-		}
-		else if (mydata[0].Choices[0].PartyShortName == "REP")
-		{
-			right = mydata[0].Choices[0].ChoiceTotalVotes;
-			left = mydata[0].Choices[1].ChoiceTotalVotes;
-		}
-		if (right != mcsally || left != sinema)
-		{
-			z = "UPDATE! THE ARIZONA VOTE TOTALS HAVE CHANGED!\n";
-			if (right < left)
-			{	
-				z = z + "Current leader: Sinema.";
-				z = z + "\n" + "Current Sinema Vote: " + left + ". This has gone up by: " + (left - sinema);
-				z = z + "\n" + "Curren Mcsally vote: " + right +  ". This has gone up by: " + (right - mcsally);
-				z = z + "\n" + "Sinema now leads by: " + (left - right);
-				z = z + "\n" + "This has swung to sinema by: " + ((left-sinema)-(right-mcsally)) + " votes (negative means swung away).";
-				c = (sinema / i - mcsally / i) * 100;
-				z = z + "\n" + "Old MOV: " + c.toFixed(2);
-				c = (left / i - right / i) * 100; 
-				z = z + "\n" + "New MOV: " + c.toFixed(2);
-			}
-			else if (left < right || left == right)
-			{	
-				z = z + "Current leader: Mcsally.";
-				z = z + "\n" + "Current Mcsally Vote: " + right + ". This has gone up by: " + (right - mcsally);
-				z = z + "\n" + "Curren Sinema vote: " + left + ". This has gone up by: " + (left - sinema);
-				z = z + "\n" + "Mcsally now leads by: " + (right - left);
-				z = z + "\n" + "This has swing to mcsally by: " + ((right-mcsally)-(left-sinema)) + " votes. (negative means swung away)";
-				c = (right / i - left / i) * 100; 
-				z = z + "\n" + "New MOV: " + c.toFixed(2);
-			}
-			bot.channels.get("268801667133079552").send(z);
-			bot.users.get(auth.owner).send(z); 
-			z = z.substring(46);
-			z = "AZ UPDATE \n" + z;
-			client.post('statuses/update', {status: z},  function(error, tweet, response) {
-			if(!error){
-			console.log(tweet);  // Tweet body.
-			//console.log(response);  // Raw response object.
-			}
-			});
-			mcsally = right;
-			sinema = left;
-			con.query("update randomvars SET amount = " + mcsally + " where nameof = 'mcsally'");
-			con.query("update randomvars SET amount = " + sinema + " where nameof = 'sinema'");
-		}
-		con.query("update randomvars SET amount = " + cazint + " where nameof = 'urlnum'");
-		//console.log("updating cazint" + cazint);
-}
-
 checktime();
 
 function checktime() {
@@ -720,7 +737,7 @@ function campaignspending() {
 		beto = "As of " + result[a-1].date + ":\nBeto has spent $" + result[a-1].amount + "k on twitter ads\n";
 		beto1 = "Beto has spent $" + (result[a-1].amount - result[a-2].amount).toFixed(2) + "k on twitter ads\n";
 		//console.log(result);
-	});	
+	});
 	con.query("SELECT * from Kamala", function (err, result) {
 		if (err) throw err;
 		a = result.length;
@@ -778,13 +795,245 @@ function campaignspending() {
 		},6000);
 	},5000);
 }
+*/
 
 //Used for monitoring Predictit. Currently being used. Runs every minute (the frequency PI updates their API)
-setInterval(function(){ 
+setInterval(function(){
 	getPIdata();
 	checkdnom();
 	checkpres();
+	checkneg();
+	checknegv2();
 },60005);
+
+function checknegv2() {
+	output = 0;
+	var zv2 = [];
+	var pmap = new Map();
+	if (lastpi == null)
+		return;
+	for (increment in lastpi.markets)
+		if (lastpi.markets[increment].contracts.length >= 2)
+		{
+			i = 0;
+			cost = 0;
+			payout = 0;
+			cone = 0;
+			if (lastpi.markets[increment].contracts[0].bestBuyNoCost == null)
+				cone = 99;
+			else
+				cone = lastpi.markets[increment].contracts[0].bestBuyNoCost * 100;
+			payout = (90 + .1 * cone) * (lastpi.markets[increment].contracts.length - 1);
+			cost = cone;
+			for(innerinc in lastpi.markets[increment].contracts)
+			{
+				if (innerinc != 0) {
+					if (lastpi.markets[increment].contracts[innerinc].bestBuyNoCost == null)
+					{
+						i += 1;
+						payout = (90 + .1 * cone) * (lastpi.markets[increment].contracts.length - 1 - i);
+					}
+					else
+						cost = cost + (lastpi.markets[increment].contracts[innerinc].bestBuyNoCost * 100) * (cone * .1 + 90) / (90 + .1 * (lastpi.markets[increment].contracts[innerinc].bestBuyNoCost * 100));
+				}
+			}
+			if (0 <= payout - cost)
+			{
+				output = 1;
+				zv2.push(lastpi.markets[increment].name);
+				pmap.set(lastpi.markets[increment].name, increment);
+				//message.channel.send("The cost is: " + cost + " the payout is " + payout + ". Neg risk possible");
+			}
+			//message.channel.send("The cost is: " + cost + " the payout is " + payout + ". Neg risk NOT possible");
+		}
+	latv2 = [];
+	temp = zv2.toString();
+	if (currnegriskv2 == "")
+	{
+		console.log(zv2.toString() + "is being added");
+		currnegriskv2 = zv2.toString();
+		return;
+	}
+	if (output != 0)
+	{
+		for (inc in zv2)
+		{
+			if (!currnegriskv2.includes(zv2[inc]))
+			{
+				console.log("adding " + zv2[inc] + " to " + currnegriskv2);
+				latv2.push(zv2[inc]);
+				currnegriskv2 = currnegriskv2 + " " +  zv2[inc].toString();
+			}
+		};
+		if (latv2 != "")
+		{
+			output = pmap.get(latv2[0]);
+			{
+				i = 0;
+				cost = 0;
+				payout = 0;
+				cone = 0;
+				if (lastpi.markets[output].contracts[0].bestBuyNoCost == null)
+					cone = 99;
+				else
+					cone = lastpi.markets[output].contracts[0].bestBuyNoCost * 100;
+				payout = (90 + .1 * cone) * (lastpi.markets[output].contracts.length - 1);
+				cost = cone;
+				for(innerinc in lastpi.markets[output].contracts)
+				{
+					if (innerinc != 0) {
+						if (lastpi.markets[output].contracts[innerinc].bestBuyNoCost == null)
+						{
+							i += 1;
+							payout = (90 + .1 * cone) * (lastpi.markets[output].contracts.length - 1 - i);
+						}
+						else
+							cost = cost + (lastpi.markets[output].contracts[innerinc].bestBuyNoCost * 100) * (cone * .1 + 90) / (90 + .1 * (lastpi.markets[output].contracts[innerinc].bestBuyNoCost * 100));
+					}
+				}
+				if (0 <= payout - cost)
+				{
+					cost = cost.toFixed(2);
+					payout = payout.toFixed(2);
+					bot.channels.get("274023975292764180").send("Market: " + lastpi.markets[output].name + "\nURL: " + lastpi.markets[output].url + ". The cost is: " + cost + " the payout is " + payout + ". Neg risk possible");
+				}
+			}
+		};
+		console.log("zv2: " + zv2);
+		console.log(latv2);
+	}
+	if (negriskcounter == 45)
+	{
+		console.log(temp + "is being added");
+		currnegriskv2 = temp;
+		negriskcounter = 0;
+	}
+}
+
+function checkneg() {
+	if (lastpi == null)
+		return;
+	//z = "```\nCurrent Neg Risk:\n";
+	z = [];
+	output = 0;
+	for (increment in lastpi.markets)
+	{
+		//console.log(mydata.markets[increment].name);
+		if (lastpi.markets[increment].contracts.length >= 2)
+		{
+			i = 0;
+			for(innerinc in lastpi.markets[increment].contracts)
+			{
+				if (lastpi.markets[increment].contracts[innerinc].bestBuyNoCost == null)
+					i += 0;
+				else
+					i += (1 - lastpi.markets[increment].contracts[innerinc].bestBuyNoCost);
+			}
+			a = lastpi.markets[increment].contracts.length;
+			if (a == 2) {
+				if (i >= 1.06)
+				{
+					z.push(lastpi.markets[increment].name);
+					output = 1;
+				}
+			}
+			else if (a == 3) {
+				if (i >= 1.08)
+				{
+					z.push(lastpi.markets[increment].name);
+					output = 1;
+				}							}
+			else if (a == 4 || a == 5) {
+				if (i >= 1.09)
+				{
+					z.push(lastpi.markets[increment].name);
+					output = 1;
+				}							}
+			else if (a >= 5 && a <= 10) {
+				if (i >= 1.10)
+				{
+					z.push(lastpi.markets[increment].name);
+					output = 1;
+				}							}
+			else if (a > 10) {
+				if (i >= 1.11)
+				{
+					z.push(lastpi.markets[increment].name);
+					output = 1;
+				}
+			}
+		}
+	}
+	console.log(z);
+	lat = [];
+	temp = z.toString();
+	if (currnegrisk == "")
+	{
+		console.log(z.toString() + "is being added");
+		currnegrisk = z.toString();
+		negriskcounter = 0;
+		return;
+	}
+	if (output != 0) {
+		for (inc in z)
+		{
+			if (!currnegrisk.includes(z[inc]))
+			{
+				console.log("adding " + z[inc] + " to " + currnegrisk);
+				lat.push(z[inc]);
+				currnegrisk = currnegrisk + " " +  z[inc].toString();
+			}
+		};
+		console.log("z: " + z);
+		console.log("currnegrisk =" + currnegrisk);
+		console.log(lat);
+		if (lat != "")
+		{
+			console.log("starting print statement: " + lat);
+			z = "ALERT! NEW NEG RISK!\n```\n"
+			for (zinc in lat)
+			{
+				for (increment in lastpi.markets)
+				{
+					if (lat[zinc] == lastpi.markets[increment].name)
+					{
+						output = increment;
+						a = 1;
+						break;
+					}
+				}
+				if (a == 0)
+				{
+					console.log("error negrisk");
+					break;
+				}
+				if (lastpi.markets[output].contracts.length >= 2)
+				{
+					i = 0;
+					for(innerinc in lastpi.markets[output].contracts)
+					{
+						if (lastpi.markets[output].contracts[innerinc].bestBuyNoCost == null)
+							i += 0;
+						else
+							i += (1 - lastpi.markets[output].contracts[innerinc].bestBuyNoCost);
+					}
+					i = i.toFixed(2);
+					z = z +"Market: " + lastpi.markets[output].name + "\nCombined neg risk: " + i +"\nURL: " + lastpi.markets[output].url + "\n";
+					z = z + '```';
+				}
+			}
+			bot.channels.get("274023975292764180").send(z);
+		}
+	};
+	negriskcounter = negriskcounter + 1;
+	console.log(negriskcounter);
+	if (negriskcounter == 45)
+	{
+		console.log(temp + "is being added");
+		currnegrisk = temp;
+		negriskcounter = 0;
+	}
+};
 
 //Set what day of the shutdown are are in
 /*
@@ -799,7 +1048,7 @@ function shutitdown(){
 	z = z - 35;
 	z = Math.ceil(z);
 	z = "The shutdown ended " + z + " days ago";
-	bot.channels.get("268801667133079552").send(z); 
+	bot.channels.get("268801667133079552").send(z);
 }
 
 function checkpres() {
@@ -833,7 +1082,8 @@ function checkstock(stock) {
 
 function stockcheck() {
 	var mydata = JSON.parse(this.responseText);
-	//console.log(mydata.items[0].pagemap);	
+	//console.log(mydata.items[0].pagemap);
+	try{
 	i = mydata.items[0].pagemap.financialquote[0].name + "\n";
 	i = i + (mydata.items[0].pagemap.financialquote[0].price) + "\n";
 	if (mydata.items[0].pagemap.financialquote[0].pricechange > 0)
@@ -841,6 +1091,11 @@ function stockcheck() {
 	else
 		i = i + "```DIFF\n" + mydata.items[0].pagemap.financialquote[0].pricechange + "\n```";
 	bot.channels.get(z).send(i);
+	}
+	catch (err)
+	{
+		bot.channels.get(z).send("Im afraid i cant do that dave");
+	}
 	return;
 }
 
@@ -859,8 +1114,9 @@ function checkdow() {
 
 function dowcheck() {
 	var mydata = JSON.parse(this.responseText);
-	//console.log(mydata.items[0].pagemap);	
+	//console.log(mydata.items[0].pagemap);
 	i = "DJIA: ";
+	console.log("final check:" + mydata.items[0].pagemap.financialquote);
 	i = i + (mydata.items[0].pagemap.financialquote[0].price).substring(0,2) + ',' + (mydata.items[0].pagemap.financialquote[0].price).substring(2,(mydata.items[0].pagemap.financialquote[0].price).length) + "\n";
 	if (mydata.items[0].pagemap.financialquote[0].pricechange > 0)
 		i = i + "```CSS\n+" + mydata.items[0].pagemap.financialquote[0].pricechange + "\n```";
@@ -889,7 +1145,7 @@ function prescontractcounter() {
 	{
 		if ( 1 == i - prescnums)
 		{
-			z = "Alert! New person added added to pres market: " + z 
+			z = "Alert! New person added added to pres market: " + z
 			bot.users.get(auth.owner).send(z);
 			client.post('statuses/update', {status: z},  function(error, tweet, response) {
 			if(!error){
@@ -923,7 +1179,7 @@ function prescontractcounter() {
 		z = "invalid get request";
 		console.log(z + ": " + mydata);
 	}
-	
+
 }
 
 function checkdnom() {
@@ -957,7 +1213,7 @@ function contractcounter() {
 	{
 		if ( 1 == i - cnums)
 		{
-			z = "Alert! New person added added to dem nom market: " + z 
+			z = "Alert! New person added added to dem nom market: " + z
 			bot.users.get(auth.owner).send(z);
 			client.post('statuses/update', {status: z},  function(error, tweet, response) {
 			if(!error){
@@ -990,13 +1246,14 @@ function contractcounter() {
 		z = "invalid get request";
 		console.log(z + ": " + mydata);
 	}
-	
+
 }
 
-//This is used to retrieve contract specific info. contract number is passed to it, and its pulled up, site scanned. 
-function getpiVolatility (contractnumber) {
-	//console.log("made it this far \n" + contractnumber);
-	z = "https://www.predictit.org/legacy/Contract/" + contractnumber;
+//This is used to retrieve contract specific info. contract number is passed to it, and its pulled up, site scanned.
+function getpiVolatility (marketnumber, contractnumber) {
+	console.log("contract num\n" + contractnumber + "\nMarket num " + marketnumber);
+	z = "https://www.predictit.org/api/Market/" + marketnumber + "/Contracts/Stats";
+	a = contractnumber;
 	//console.log(z);
 	try{
 	var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
@@ -1013,26 +1270,17 @@ function getpiVolatility (contractnumber) {
 //This scans the XML request for the current volume
 function pivolatilitylistener (){
 	//var output = "test";
-	//console.log("made it this far round 2 \n" + output);
-	var mydata = this.responseText;
-	//console.log(mydata);
-	for (let i = 0; i < mydata.length; i++)
+	console.log("made it this far round 2 \n" + a);
+	var mydata = JSON.parse(this.responseText);
+	var index = mydata.findIndex(mkt=> mkt.contractId === a);
+	z = mydata[index].todaysVolume;
+	console.log(z);
+	z = parseInt(z);
+	if (z > 4000)
 	{
-		if (mydata.substring(i, i +24) == "<td>Today's Volume:</td>")
-		{
-			z = mydata.substring(i+24+46, i+24+70);
-			//console.log(z);
-			z = z.replace(/,/g, "");
-			z= parseInt(z);
-			if (z > 4000)
-			{
-				z = output + "\nWith " + z + " shares traded today";
-				bot.channels.get("274023975292764180").send(z)
-			}
-			return;
-		}
-	}
-	
+		z = output + "\nWith " + z + " shares traded today";
+		bot.channels.get("274023975292764180").send(z);
+	};
 }
 //<td>Today's Volume:</td>
 //initializes the API call
@@ -1046,9 +1294,9 @@ function getPIdata () {
 	}
 	catch (err) {
 		console.log("error getting dem nom");
-	} 
+	}
 }
-//Scans the API call. 
+//Scans the API call.
 function pilistener () {
 	try {
 	var mydata = JSON.parse(this.responseText);
@@ -1074,7 +1322,7 @@ function pilistener () {
 				console.log("new contracts added (2) named " + mydata.markets[increment].contracts[innerinc].name + "in the market " + mydata.markets[increment]);
 				lastpi = mydata;
 				return;
-			}		
+			}
 			if (mydata.markets[increment].contracts[innerinc].id != lastpi.markets[increment].contracts[innerinc].id) //error, this is not working when the order changes
 			{
 				lat = lastpi.markets[increment].contracts.filter(obj => {
@@ -1101,7 +1349,7 @@ function pilistener () {
 				if (comp > .09 || comp < -.09)
 				{
 					output = z;
-					getpiVolatility(mydata.markets[increment].contracts[innerinc].id);
+					getpiVolatility(mydata.markets[increment].id, mydata.markets[increment].contracts[innerinc].id);
 					lastpi = mydata;
 					return;
 				//console.log(z);
